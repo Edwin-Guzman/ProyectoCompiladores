@@ -8,7 +8,7 @@ from src.Tabla_simbolos import TablaSimbolos
 
 # Configuración del entorno e interfaz
 st.set_page_config(page_title="Mini Compilador Académico", layout="wide", page_icon="🎛️")
-st.title("🎛️ Mini Compilador Académico - IS913")
+st.title("🎛️ Mini Compilador - IS913")
 st.subheader("Diseño de Compiladores | Ingeniería en Sistemas")
 
 # Barra lateral para seleccionar el Lenguaje (El Extra de Arquitectura)

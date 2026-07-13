@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from Lenguajes.lenguaje_propio import ReglasLenguajePropio
+from Lenguajes.Lenguaje_Propio import ReglasLenguajePropio
 from Lenguajes.cpp import ReglasCpp
 from src.Analizador_Lexico import AnalizadorLexico
 from src.Analizador_Sintactico import AnalizadorSintactico
@@ -11,7 +11,7 @@ st.set_page_config(page_title="Mini Compilador Académico", layout="wide", page_
 st.title("🎛️ Mini Compilador - IS913")
 st.subheader("Diseño de Compiladores | Ingeniería en Sistemas")
 
-# Barra lateral para seleccionar el Lenguaje (El Extra de Arquitectura)
+# Barra lateral para seleccionar el Lenguaje
 st.sidebar.header("Configuración del Sistema")
 opcion_lenguaje = st.sidebar.selectbox(
     "Seleccione el Lenguaje a Compilar:",

@@ -1,8 +1,10 @@
 import streamlit as st
 import pandas as pd
-from streamlit_ace import st_ace  # Nueva dependencia para el editor profesional
+from streamlit_ace import st_ace  # Dependencia para el editor con números de línea
 from MiniCompilador.Lenguajes.Lenguaje_Propio import ReglasLenguajePropio
 from MiniCompilador.Lenguajes.cpp import ReglasCpp
+from MiniCompilador.Lenguajes.c_puro import ReglasC
+from MiniCompilador.Lenguajes.go_lang import ReglasGo
 from MiniCompilador.src.Analizador_Lexico import AnalizadorLexico
 from MiniCompilador.src.Analizador_Sintactico import AnalizadorSintactico
 from MiniCompilador.src.Tabla_simbolos import TablaSimbolos
@@ -16,32 +18,56 @@ st.subheader("Diseño de Compiladores | Ingeniería en Sistemas")
 st.sidebar.header("Configuración del Sistema")
 opcion_lenguaje = st.sidebar.selectbox(
     "Seleccione el Lenguaje a Compilar:",
-    ["Lenguaje Propio", "Subconjunto C++"]
+    ["Lenguaje Propio", "Subconjunto C++", "Subconjunto C", "Subconjunto Go"]
 )
 
-# Inyección dinámica de reglas según la selección del usuario
+# Inyección dinámica de reglas y código de ejemplo según la selección
 if opcion_lenguaje == "Lenguaje Propio":
     reglas = ReglasLenguajePropio()
-else:
+    codigo_ejemplo = (
+        'entero edad = 20;\n'
+        'texto nombre = "Edwin";\n'
+        'si (edad > 18) {\n'
+        '    mostrar(nombre);\n'
+        '}'
+    )
+elif opcion_lenguaje == "Subconjunto C++":
     reglas = ReglasCpp()
+    codigo_ejemplo = (
+        'int edad = 20;\n'
+        'string nombre = "Edwin";\n'
+        'if (edad > 18) {\n'
+        '    print(nombre);\n'
+        '}'
+    )
+elif opcion_lenguaje == "Subconjunto C":
+    reglas = ReglasC()
+    codigo_ejemplo = (
+        'int edad = 20;\n'
+        'string nombre = "Edwin";\n'
+        'if (edad > 18) {\n'
+        '    printf(nombre);\n'
+        '}'
+    )
+else:  # Subconjunto Go
+    reglas = ReglasGo()
+    codigo_ejemplo = (
+        'int edad = 20\n'  # En Go las declaraciones simples no suelen llevar ';' pero el parser actual lo busca
+        'string nombre = "Edwin";\n'
+        'if (edad > 18) {\n'
+        '    fmt.Println(nombre);\n'
+        '}'
+    )
 
 st.sidebar.info(f"⚙️ **Modo Activo:** {reglas.NOMBRE}")
 
 # Área de entrada para el código fuente con editor profesional
 st.markdown("### Código Fuente de Entrada")
 
-codigo_ejemplo = (
-    'int edad = 20;\n'
-    'string nombre = "Edwin";\n'
-    'if (edad > 18) {\n'
-    '    print(nombre);\n'
-    '}'
-)
-
 # Renderizado de Streamlit Ace (Gutter activa los números de línea automáticamente)
 codigo_usuario = st_ace(
     value=codigo_ejemplo,
-    language="c_cpp",
+    language="c_cpp" if opcion_lenguaje != "Subconjunto Go" else "golang",
     theme="monokai",
     height=280,
     font_size=14,
@@ -49,7 +75,7 @@ codigo_usuario = st_ace(
     show_gutter=True,      # Muestra los números de línea al lado izquierdo
     show_print_margin=False,
     wrap=True,
-    key="editor_compilador"
+    key=f"editor_compilador_{opcion_lenguaje}" # Key dinámica para forzar refresco al cambiar lenguaje
 )
 
 # Botón principal de compilación

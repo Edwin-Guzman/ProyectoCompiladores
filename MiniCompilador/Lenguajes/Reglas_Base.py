@@ -8,3 +8,6 @@ class ReglasBase:
     #Conjunto de tipos de datos permitidos
     TIPOS_DATOS = set()
     
+    #Mapeo dinamico para el ruteo del analizador sintactico
+    IF = "if"
+    PRINT = "print"

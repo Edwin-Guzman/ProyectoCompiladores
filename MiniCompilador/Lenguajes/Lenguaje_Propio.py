@@ -4,10 +4,11 @@ class ReglasLenguajePropio(ReglasBase):
     """Reglas léxicas y gramaticales específicas del Lenguaje Propio."""
     NOMBRE = "Lenguaje Propio"
     
-    # Especificación de tokens detallada mediante expresiones regulares
+    # Especificacion de tokens detallada mediante expresiones regulares
     ESPECIFICACION_TOKENS = [
-        ('PALABRA_RESERVADA', r'\b(int|float|double|char|string|bool|if|else|print)\b'),
-        ('LITERAL_BOOLEANO',  r'\b(true|false)\b'),
+        # Las palabras reservadas del lenguaje adaptadas a español
+        ('PALABRA_RESERVADA', r'\b(entero|decimal|texto|booleano|si|sino|mostrar)\b'),
+        ('LITERAL_BOOLEANO',  r'\b(verdadero|falso)\b'),
         ('IDENTIFICADOR',     r'\b[a-zA-Z_][a-zA-Z0-9_]*\b'),
         ('LITERAL_FLOTANTE',  r'\b\d+\.\d+\b'),
         ('LITERAL_ENTERO',    r'\b\d+\b'),
@@ -23,3 +24,6 @@ class ReglasLenguajePropio(ReglasBase):
     
     # Tipos de datos que el Analizador Sintactico reconocera para declaraciones
     TIPOS_DATOS = {'int', 'float', 'double', 'char', 'string', 'bool'}
+    # Mapeo de enrutamiento para el Parser
+    IF = "si"
+    PRINT = "mostrar"

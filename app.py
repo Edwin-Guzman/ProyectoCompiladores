@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from streamlit_ace import st_ace  # Nueva dependencia para el editor profesional
 from MiniCompilador.Lenguajes.Lenguaje_Propio import ReglasLenguajePropio
 from MiniCompilador.Lenguajes.cpp import ReglasCpp
 from MiniCompilador.src.Analizador_Lexico import AnalizadorLexico
@@ -26,8 +27,9 @@ else:
 
 st.sidebar.info(f"⚙️ **Modo Activo:** {reglas.NOMBRE}")
 
-# Área de entrada para el código fuente
+# Área de entrada para el código fuente con editor profesional
 st.markdown("### Código Fuente de Entrada")
+
 codigo_ejemplo = (
     'int edad = 20;\n'
     'string nombre = "Edwin";\n'
@@ -35,10 +37,19 @@ codigo_ejemplo = (
     '    print(nombre);\n'
     '}'
 )
-codigo_usuario = st.text_area(
-    "Escriba o pegue su código aquí:",
+
+# Renderizado de Streamlit Ace (Gutter activa los números de línea automáticamente)
+codigo_usuario = st_ace(
     value=codigo_ejemplo,
-    height=200
+    language="c_cpp",
+    theme="monokai",
+    height=280,
+    font_size=14,
+    tab_size=4,
+    show_gutter=True,      # Muestra los números de línea al lado izquierdo
+    show_print_margin=False,
+    wrap=True,
+    key="editor_compilador"
 )
 
 # Botón principal de compilación

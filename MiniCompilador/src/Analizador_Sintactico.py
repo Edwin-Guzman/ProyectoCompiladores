@@ -11,14 +11,22 @@ class AnalizadorSintactico:
         self.indice_actual = 0
         self.errores = []
 
-        # MAPEO GENERAL DE SUGERENCIAS Y EXPECTATIVAS POR TIPO primitivo
+        # MAPEO GENERAL DE SUGERENCIAS Y EXPECTATIVAS POR TIPO (Español, Inglés y Go)
         self._MAPA_SUGERENCIAS = {
+            # Estándar C / C++ / Go
             'int': ("un número entero válido (ej: 20).", 'LITERAL_ENTERO'),
             'float': ("un número decimal válido (ej: 19.5).", 'LITERAL_FLOTANTE'),
+            'float32': ("un número decimal de 32 bits (ej: 19.5).", 'LITERAL_FLOTANTE'),
+            'float64': ("un número decimal de 64 bits (ej: 19.5).", 'LITERAL_FLOTANTE'),
             'string': ('un texto encerrado entre comillas dobles (ej: "Edwin").', 'LITERAL_STRING'),
             'char': ("un carácter encerrado entre comillas simples (ej: 'A').", 'LITERAL_CHAR'),
             'bool': ("un valor booleano válido ('true' o 'false').", 'LITERAL_BOOLEANO'),
-            'boolean': ("un valor booleano válido ('true' o 'false').", 'LITERAL_BOOLEANO')
+            
+            # Estándar Lenguaje Propio (Español)
+            'entero': ("un número entero válido (ej: 20).", 'LITERAL_ENTERO'),
+            'decimal': ("un número decimal válido (ej: 19.5).", 'LITERAL_FLOTANTE'),
+            'texto': ('un texto encerrado entre comillas dobles (ej: "Edwin").', 'LITERAL_STRING'),
+            'booleano': ("un valor booleano válido ('verdadero' o 'falso').", 'LITERAL_BOOLEANO')
         }
 
     def _token_actual(self):
@@ -54,7 +62,7 @@ class AnalizadorSintactico:
             if tok.tipo_token == 'DELIMITADOR_P_COMA':
                 self.indice_actual += 1  # Consumir el punto y coma y salir del pánico
                 break
-            if tok.lexema in self.reglas.TIPOS_DATOS or tok.lexema in ['if', 'print']:
+            if tok.lexema in self.reglas.TIPOS_DATOS or tok.lexema in [self.reglas.IF, self.reglas.PRINT]:
                 break
             self.indice_actual += 1
 
@@ -70,15 +78,15 @@ class AnalizadorSintactico:
                 self._analizar_declaracion()
             elif tok.tipo_token == 'IDENTIFICADOR':
                 self._analizar_asignacion()
-            elif tok.lexema == 'if':
+            elif tok.lexema == self.reglas.IF:
                 self._analizar_condicional_if()
-            elif tok.lexema == 'print':
+            elif tok.lexema == self.reglas.PRINT:
                 self._analizar_impresion()
             else:
                 self.errores.append(ErrorCompilador(
                     "Sintáctico", tok.linea,
                     f"Sentencia iniciada de manera inválida con '{tok.lexema}'",
-                    "Asegúrese de configurar una declaración, asignación, condicional 'if' o instrucción 'print'."
+                    f"Asegúrese de configurar una declaración, asignación, condicional '{self.reglas.IF}' o instrucción '{self.reglas.PRINT}'."
                 ))
                 self.indice_actual += 1
 
@@ -154,7 +162,7 @@ class AnalizadorSintactico:
             self.errores.append(ErrorCompilador(
                 "Semántico", tok_id.linea,
                 f"Variable no declarada: '{tok_id.lexema}' está siendo usada sin definición previa.",
-                f"Declare la variable asignándole un tipo (ej: int {tok_id.lexema};) antes de usarla."
+                f"Declare la variable asignándole un tipo (ej: {self.reglas.TIPOS_DATOS.copy().pop() if hasattr(self.reglas, 'TIPOS_DATOS') and self.reglas.TIPOS_DATOS else 'int'} {tok_id.lexema};) antes de usarla."
             ))
 
         if not self._consumir('OPERADOR_ASIGNACION', "Se esperaba el operador '=' para ejecutar la asignación.", "Inserte el signo '='."):
@@ -173,23 +181,38 @@ class AnalizadorSintactico:
             self.tabla_simbolos.marcar_como_modificado(tok_id.lexema)
 
     def _analizar_condicional_if(self):
-        self.indice_actual += 1  # Consumir 'if'
+        self.indice_actual += 1  # Consumir 'if' / 'si'
         
-        if not self._consumir('DELIMITADOR_PARENT', "Falta el paréntesis de apertura '(' para encapsular la condición.", "Inserte un '(' después del 'if'."): 
+        tiene_parentesis = False
+        tok_actual = self._token_actual()
+        
+        # Go no requiere obligatoriamente paréntesis en las condiciones
+        if tok_actual and tok_actual.tipo_token == 'DELIMITADOR_PARENT':
+            self.indice_actual += 1  # Consumir '('
+            tiene_parentesis = True
+        elif self.reglas.NOMBRE != "Subconjunto Go":
+            # Si no es Go, los paréntesis son obligatorios
+            self.errores.append(ErrorCompilador(
+                "Sintáctico", tok_actual.linea if tok_actual else 1,
+                "Falta el paréntesis de apertura '(' para encapsular la condición.",
+                f"Inserte un '(' después del '{self.reglas.IF}'."
+            ))
             return
         
-        while self._token_actual() and self._token_actual().lexema != ')':
+        # Saltar la condición de forma segura hasta el inicio del bloque
+        while self._token_actual() and self._token_actual().lexema != ')' and self._token_actual().lexema != '{':
             self.indice_actual += 1
             
-        if not self._consumir('DELIMITADOR_PARENT', "Falta el paréntesis de cierre ')' para finalizar la condición.", "Cierre la condición con un ')'."): 
-            return
+        if tiene_parentesis:
+            if not self._consumir('DELIMITADOR_PARENT', "Falta el paréntesis de cierre ')' para finalizar la condición.", "Cierre la condición con un ')'."): 
+                return
             
-        if not self._consumir('DELIMITADOR_LLAVE', "Falta la llave de apertura '{' para iniciar el bloque del 'if'.", "Abra las llaves '{' para el bloque de código."): 
+        if not self._consumir('DELIMITADOR_LLAVE', f"Falta la llave de apertura '{{' para iniciar el bloque del '{self.reglas.IF}'.", "Abra las llaves '{' para el bloque de código."): 
             return
             
         while self._token_actual() and self._token_actual().lexema != '}':
             tok = self._token_actual()
-            if tok.lexema == 'print':
+            if tok.lexema == self.reglas.PRINT:
                 self._analizar_impresion()
             elif tok.lexema in self.reglas.TIPOS_DATOS:
                 self._analizar_declaracion()
@@ -198,17 +221,17 @@ class AnalizadorSintactico:
             else:
                 self.indice_actual += 1
                 
-        self._consumir('DELIMITADOR_LLAVE', "Falta la llave de cierre '}' para dar fin al bloque condicional.", "Cierre el bloque del 'if' agregando una llave '}'.")
+        self._consumir('DELIMITADOR_LLAVE', f"Falta la llave de cierre '}}' para dar fin al bloque condicional.", f"Cierre el bloque del '{self.reglas.IF}' agregando una llave '}}'.")
 
     def _analizar_impresion(self):
-        self.indice_actual += 1  # Consumir 'print'
-        if not self._consumir('DELIMITADOR_PARENT', "Falta '(' en la instrucción 'print'.", "Escriba 'print(' para iniciar."): 
+        self.indice_actual += 1  # Consumir print / printf / mostrar / fmt.Println
+        if not self._consumir('DELIMITADOR_PARENT', f"Falta '(' en la instrucción '{self.reglas.PRINT}'.", f"Escriba '{self.reglas.PRINT}(' para iniciar."): 
             return
         
         while self._token_actual() and self._token_actual().lexema != ')':
             self.indice_actual += 1
             
-        if not self._consumir('DELIMITADOR_PARENT', "Falta ')' en la instrucción 'print'.", "Cierre los argumentos con ')'."): 
+        if not self._consumir('DELIMITADOR_PARENT', f"Falta ')' en la instrucción '{self.reglas.PRINT}'.", "Cierre los argumentos con ')'."): 
             return
             
-        self._consumir('DELIMITADOR_P_COMA', "Falta el ';' al concluir la instrucción 'print'.", "Termine la línea de impresión con un ';'.")
+        self._consumir('DELIMITADOR_P_COMA', f"Falta el ';' al concluir la instrucción '{self.reglas.PRINT}'.", "Termine la línea de impresión con un ';'.")

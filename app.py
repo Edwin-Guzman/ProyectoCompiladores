@@ -17,6 +17,21 @@ class Preprocesador:
     manteniendo la consistencia de los números de línea reales."""
     @staticmethod
     def preprocesar(codigo: str, nombre_lenguaje: str) -> str:
+        # 1. Caso especial: Lenguaje Propio
+        # Evita alterar llaves externas o buscar puntos de entrada como 'main()'
+        if nombre_lenguaje == "Lenguaje Propio":
+            lineas = codigo.split('\n')
+            lineas_filtradas = []
+            for linea in lineas:
+                linea_strip = linea.strip()
+                # Reemplazar comentarios de línea por líneas vacías para no perder el índice
+                if linea_strip.startswith('//') or linea_strip.startswith('#'):
+                    lineas_filtradas.append("")
+                else:
+                    lineas_filtradas.append(linea)
+            return '\n'.join(lineas_filtradas)
+
+        # 2. Caso estándar: C, C++ y Go
         lineas = codigo.split('\n')
         lineas_filtradas = []
         
@@ -31,22 +46,22 @@ class Preprocesador:
         for linea in lineas:
             linea_strip = linea.strip()
             
-            # 1. Conservar comentarios vacíos o líneas vacías como saltos de línea para no perder el índice
+            # Conservar líneas vacías como saltos de línea para no perder el índice
             if not linea_strip:
                 lineas_filtradas.append("")
                 continue
             
-            # 2. Comentarios de línea completa (se reemplazan por vacío para mantener la línea)
+            # Comentarios de línea completa (se reemplazan por vacío para mantener la línea)
             if linea_strip.startswith('//') or linea_strip.startswith('#'):
                 lineas_filtradas.append("")
                 continue
             
-            # 3. Omitir directivas reemplazándolas por una línea vacía
+            # Omitir directivas reemplazándolas por una línea vacía
             if any(re.match(patron, linea) for patron in patrones_ignorar):
                 lineas_filtradas.append("")
                 continue
                 
-            # 4. Omitir cabecera de función main()
+            # Omitir cabecera de función main()
             if 'main()' in linea or 'func main()' in linea:
                 lineas_filtradas.append("")
                 continue
@@ -56,7 +71,7 @@ class Preprocesador:
         # Reconstruir el código temporalmente
         codigo_limpio = '\n'.join(lineas_filtradas)
         
-        # 5. Remover llave de cierre externa '}' de funciones principales sin alterar el contador de líneas
+        # Remover llave de cierre externa '}' de funciones principales sin alterar el contador de líneas
         pos_ultima_llave = codigo_limpio.rfind('}')
         if pos_ultima_llave != -1:
             codigo_limpio = codigo_limpio[:pos_ultima_llave] + " " + codigo_limpio[pos_ultima_llave+1:]

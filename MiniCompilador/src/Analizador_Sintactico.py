@@ -159,10 +159,16 @@ class AnalizadorSintactico:
         # --- CONTROL SEMÁNTICO: Verificar existencia ---
         registro_simbolo = self.tabla_simbolos.buscar(tok_id.lexema)
         if not registro_simbolo:
+            # Obtener una sugerencia dinámica segura de tipo de dato
+            tipo_ejemplo = 'int'
+            if hasattr(self.reglas, 'TIPOS_DATOS') and self.reglas.TIPOS_DATOS:
+                tipos = list(self.reglas.TIPOS_DATOS)
+                tipo_ejemplo = tipos[0] if tipos else 'int'
+
             self.errores.append(ErrorCompilador(
                 "Semántico", tok_id.linea,
                 f"Variable no declarada: '{tok_id.lexema}' está siendo usada sin definición previa.",
-                f"Declare la variable asignándole un tipo (ej: {self.reglas.TIPOS_DATOS.copy().pop() if hasattr(self.reglas, 'TIPOS_DATOS') and self.reglas.TIPOS_DATOS else 'int'} {tok_id.lexema};) antes de usarla."
+                f"Declare la variable asignándole un tipo (ej: {tipo_ejemplo} {tok_id.lexema};) antes de usarla."
             ))
 
         if not self._consumir('OPERADOR_ASIGNACION', "Se esperaba el operador '=' para ejecutar la asignación.", "Inserte el signo '='."):

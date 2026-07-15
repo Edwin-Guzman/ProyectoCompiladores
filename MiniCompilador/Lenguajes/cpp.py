@@ -5,7 +5,7 @@ class ReglasCpp(ReglasBase):
     NOMBRE = "Subconjunto C++"
     
     ESPECIFICACION_TOKENS = [
-        ('PALABRA_RESERVADA', r'\b(int|float|double|char|string|bool|if|else|print)\b'),
+        ('PALABRA_RESERVADA', r'\b(int|float|double|char|string|bool|if|else|cout)\b'),
         ('LITERAL_BOOLEANO',  r'\b(true|false)\b'),
         ('IDENTIFICADOR',     r'\b[a-zA-Z_][a-zA-Z0-9_]*\b'),
         ('LITERAL_FLOTANTE',  r'\b\d+\.\d+\b'),
@@ -23,4 +23,4 @@ class ReglasCpp(ReglasBase):
     TIPOS_DATOS = {'int', 'float', 'double', 'char', 'string', 'bool'}
     
     IF = "if"
-    PRINT = "print"
+    PRINT = "cout"

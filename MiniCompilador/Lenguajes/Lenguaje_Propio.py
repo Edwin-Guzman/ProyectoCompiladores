@@ -22,8 +22,10 @@ class ReglasLenguajePropio(ReglasBase):
         ('DELIMITADOR_LLAVE',  r'\{|\}'),
     ]
     
-    # Tipos de datos que el Analizador Sintactico reconocera para declaraciones
-    TIPOS_DATOS = {'int', 'float', 'double', 'char', 'string', 'bool'}
-    # Mapeo de enrutamiento para el Parser
+    # --- LA CORRECCIÓN CLAVE ---
+    # Ahora el Analizador Sintáctico sabrá que 'entero' y 'texto' son tipos de datos legítimos
+    TIPOS_DATOS = {'entero', 'decimal', 'texto', 'booleano'}
+    
+    # Mapeo de enrutamiento para el Parser y el Ejecutor
     IF = "si"
     PRINT = "mostrar"

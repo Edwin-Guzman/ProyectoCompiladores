@@ -108,7 +108,7 @@ elif opcion_lenguaje == "Subconjunto C++":
         'int main() {\n'
         '    // Mi primer programa en C++\n'
         '    string saludo = "¡Hola Mundo!";\n'
-        '    print(saludo);\n'
+        '    cout(saludo);\n'
         '}'
     )
 elif opcion_lenguaje == "Subconjunto C":

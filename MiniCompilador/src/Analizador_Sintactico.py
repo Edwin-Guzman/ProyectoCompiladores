@@ -224,6 +224,8 @@ class AnalizadorSintactico:
                 self._analizar_declaracion()
             elif tok.tipo_token == 'IDENTIFICADOR':
                 self._analizar_asignacion()
+            elif tok.lexema == self.reglas.IF:  # MODIFICACIÓN CLAVE: Permite identificar un 'si' anidado
+                self._analizar_condicional_if()  # Llamada recursiva para procesar el nuevo bloque
             else:
                 self.indice_actual += 1
                 
